@@ -318,9 +318,10 @@ class Shortbread {
 		// No description
 	}
 
-	function admin_link_box ($post) {
-		$url = $this->get_short_url('link', $post->link_id);
-		echo '<input type="text" value="'.$url.'" readonly="readonly" style="width: 100%;">';
+	function admin_link_box ($link) {
+		if ($link->link_id) {
+			$url = $this->get_short_url('link', $link->link_id);
+			echo '<input type="text" value="'.$url.'" readonly="readonly" style="width: 100%;">';
 ?><script>
 (function($) {
 	var $box = $('#<?php echo self::$_domain; ?>_link_meta_box'),
@@ -336,6 +337,9 @@ class Shortbread {
 	}
 })(jQuery);
 </script><?php
+		} else {
+			echo '<p>Short URL will be generated on creation.</p>';
+		}
 	}
 
 	protected function create_input ($key, $attributes=array(), $type='text', $description='') {
