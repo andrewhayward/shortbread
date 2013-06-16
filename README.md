@@ -1,7 +1,7 @@
 Shortbread
 ==========
 
-A self-hosted short URL plugin for Wordpress. See http://labs.andrewhayward.net/wordpress/shortbread/ for more.
+A self-hosted short URL plugin for WordPress. See http://labs.andrewhayward.net/wordpress/shortbread/ for more.
 
 
 Installation
@@ -18,7 +18,7 @@ Configure *Shortbread* under `Settings > Short URLs`. Yes, it would arguably mak
 Usage
 -----
 
-Shortbread introduces a new function -- `has_shortlink()` -- which tries to indicate whether a short URL is available in your current context. This allows you to put things like this in your templates.
+**Shortbread** introduces a new function -- `has_shortlink()` -- which tries to indicate whether a short URL is available in your current context. This allows you to put things like this in your templates.
 
     <?php if (has_shortlink()): ?>
     <link rel="shortlink" href="<?php echo wp_get_shortlink(); ?>">
