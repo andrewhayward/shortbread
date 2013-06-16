@@ -108,16 +108,16 @@ class Shortbread {
 	function _get_shortlink ($shortlink=null, $id=null, $context=null, $allow_slugs=null) {
 		global $wp_query;
 		if ($context !== 'query' && !is_404()) {
-			if ($context == 'attachment' || is_attachment()) {
+			if ($context == 'category' || is_category()) {
+				return $this->get_short_url('category', $id ? $id : $wp_query->queried_object->term_id);
+			} else if ($context == 'tag' || is_tag()) {
+				return $this->get_short_url('tag', $id ? $id : $wp_query->queried_object->term_id);
+			} else if ($context == 'attachment' || is_attachment()) {
 				return $this->get_short_url('attachment', $id ? $id : $wp_query->post->ID);
 			} else if ($context == 'page' || is_page()) {
 				return $this->get_short_url('page', $id ? $id : $wp_query->post->ID);
 			} else if ($context == 'post' || is_single()) {
 				return $this->get_short_url('post', $id ? $id : $wp_query->post->ID);
-			} else if ($context == 'category' || is_category()) {
-				return $this->get_short_url('category', $id ? $id : $wp_query->queried_object->term_id);
-			} else if ($context == 'tag' || is_tag()) {
-				return $this->get_short_url('tag', $id ? $id : $wp_query->queried_object->term_id);
 			} else {
 				return $shortlink;
 			}
