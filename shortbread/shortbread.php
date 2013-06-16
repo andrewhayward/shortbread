@@ -42,7 +42,7 @@ class Shortbread {
 
 	public function __get ($key) {
 		if (isset($this->$key)) {
-			$options = (array) get_option(self::$_domain.'_options', 'cheese');
+			$options = (array) get_option(self::$_domain.'_options', array());
 			return isset($options[$key]) ? $options[$key] : self::$_defaults[$key][1];
 		}
 		return null;
@@ -51,6 +51,7 @@ class Shortbread {
 	public function __call ($method, $options) {
 		@list($_, $input) = explode('input_', $method);
 		$output = 'Field <code>'.htmlentities($input).'</code> not found.';
+		if (is_array($options[0])) $options = $options[0];
 
 		if (!empty($input) && isset(self::$_defaults[$input])) {
 			$type = self::$_defaults[$input][0];
@@ -58,12 +59,15 @@ class Shortbread {
 				case 'boolean':
 					$options = array_merge(array(
 						'value' => 1
-					), (array) $option);
+					), $options);
 					if ($this->$input) $options['checked'] = 'checked';
 					$output = $this->create_input($input, $options, 'checkbox');
 					break;
+				case 'string':
+					$output = $this->create_input($input, $options, 'text');
+					break;
 				default:
-					$output = $this->create_input($input, (array) $options);
+					$output = $this->create_input($input, $options);
 					break;
 			}
 
@@ -416,19 +420,23 @@ class Shortbread {
 		$attributes = array_merge(
 			array('name' => self::$_domain.'_options['.$key.']', 'value' => $this->$key,
 				'type' => $type, 'id' => self::$_domain.'_'.$key),
-			(array) $attributes
+			$attributes
 		);
 
 		$field = array('<input');
 		foreach ($attributes as $attribute => $value) {
-			$field[] = ' '.esc_attr($attribute).'="'.esc_attr($value).'"';
+			if (!empty($value) || !is_numeric($attribute))
+				$field[] = ' '.esc_attr($attribute).'="'.esc_attr($value).'"';
 		}
 		$field[] = '> '.$description;
 
 		return implode('', $field);
 	}
 
-	function input_url ($options = array()) {
+	function input_url ($options=array()) {
+		if (is_array($options[0]))
+			$options = $options[0];
+
 		$options = array_merge(array(
 			'placeholder'=>'http://exm.pl',
 			'class'=>'regular-text code'
