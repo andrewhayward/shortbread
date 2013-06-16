@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Shortbread
-Plugin URI: http://labs.andrewhayward.net/shortbread
+Plugin URI: http://labs.andrewhayward.net/wordpress/shortbread
 Description: Adds secondary short URLs to content for those with a second shorter domain
 Author: Andrew Hayward
 Author URI: http://andrewhayward.net
