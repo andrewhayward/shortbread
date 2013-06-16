@@ -276,6 +276,7 @@ class Shortbread {
 				$request = substr($requested_url, strlen($base));
 
 				if (empty($request)) {
+					$this->_send_analytics();
 					wp_redirect(home_url(), 301);
 					exit;
 				}
@@ -284,19 +285,24 @@ class Shortbread {
 				$id = $this->_converter->to_decimal(substr($request, 1));
 				$redirect = false;
 
+				$analytics = array();
+
 				switch ($type) {
 					case 'p': // posts, pages and attachments
-						if ($post = $this->get_object('post',$id) && $post->post_type !== 'revision') {
+						if (($post = $this->get_object('post',$id)) && ($post->post_type !== 'revision')) {
+							$analytics['dt'] = $post->post_title;
 							$redirect = get_permalink($id);
 						}
 						break;
 					case 'c': // categories
 						if ($category = $this->get_object('category',$id)) {
+							$analytics['dt'] = $category->name;
 							$redirect = get_category_link($id);
 						}
 						break;
 					case 't': // tags
 						if ($tag = $this->get_object('tag',$id)) {
+							$analytics['dt'] = $tag->name;
 							$redirect = get_tag_link($id);
 						}
 						break;
@@ -304,6 +310,8 @@ class Shortbread {
 						if ($this->redirect_links) {
 							if ($link = $this->get_object('bookmark',$id)) {
 								if ($link->link_visible == 'Y') {
+									if ($link->link_name)
+										$analytics['dt'] = $link->link_name;
 									$redirect = $link->link_url;
 								}
 							}
@@ -316,6 +324,8 @@ class Shortbread {
 				$redirect = apply_filters('short_url_redirect', $redirect, $type, $id);
 
 				if ($redirect) {
+					$analytics['cd'] = $redirect;
+					$this->_send_analytics('pageview', $analytics);
 					wp_redirect($redirect, 301);
 					exit;
 				} else {
