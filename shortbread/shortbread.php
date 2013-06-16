@@ -17,8 +17,11 @@ class Shortbread {
 
 	static $_defaults = array(
 		'url' => array('url', '', 'Short URL domain'),
+		'ga_tid' => array('string', '', 'Google Analytics ID', array(
+			'placeholder' => 'UA-XXXX-Y'
+		)),
 		'redirect_links' => array('boolean', false, 'Redirect links'),
-		'force_links_menu' => array('boolean', false, 'Force Links menu')
+		'force_links_menu' => array('boolean', false, 'Force Links menu'),
 	);
 
 	static $_domain = 'shortbread';
@@ -200,6 +203,62 @@ class Shortbread {
 		}
 	}
 
+	function _send_analytics ($type='pageview', $options=array()) {
+		$tid = $this->ga_tid;
+
+		if (empty($tid))
+			return false;
+
+		switch ($type) {
+			case 'pageview':
+				$config = array(
+					'dh' => $_SERVER['HTTP_HOST'],
+					'dp' => $_SERVER['REQUEST_URI'],
+					'dt' => '',
+					'cd' => ''
+				);
+				break;
+			case 'exception':
+				$config = array(
+					'exd' => 'Exception',
+					'exf' => 0
+				);
+			default:
+				// TO DO - add more analytics types
+				return false;
+		}
+
+		foreach ($config as $key => $value) {
+			if (isset($options[$key]))
+				$config[$key] = $options[$key];
+			if (empty($config[$key]) && $config[$key] != 0)
+				unset($config[$key]);
+		}
+
+		$session_id = isset($_COOKIE['__cid']) ? $_COOKIE['__cid'] : sha1($_SERVER['REMOTE_ADDR']);
+		@setCookie('__cid', $session_id, time()+60*60*24*7, '/', $_SERVER['HTTP_HOST'], false, true);
+
+		$analytics = array_merge($config, array(
+			'v' => 1,
+			'tid' => $this->ga_tid,
+			'cid' => $session_id,
+			't' => $type
+		));
+
+		if (!empty($_SERVER['HTTP_REFERER']))
+			$analytics['dr'] = $_SERVER['HTTP_REFERER'];
+
+		$apiCall = curl_init('http://www.google-analytics.com/collect');
+		curl_setopt_array($apiCall, array(
+			CURLOPT_POST => True,
+			CURLOPT_POSTFIELDS => http_build_query($analytics)
+		));
+		$status = @curl_exec($apiCall) && @curl_getinfo($apiCall, CURLINFO_HTTP_CODE);
+		curl_close($apiCall);
+
+		return ($status && ($status < 300));
+	}
+
 	function handle_request ($requested_url=null) {
 		if ( !$requested_url ) {
 			// build the URL in the address bar
@@ -276,7 +335,8 @@ class Shortbread {
 		foreach (self::$_defaults as $field => $config) {
 			$id = self::$_domain.'_'.$field;
 			$label = '<label for="'.$id.'">'.__($config[2], self::$_domain).'</label>';
-			add_settings_field($id, $label, array($this, 'input_'.$field), $page, $section);
+			$options = isset($config[3]) ? (array) $config[3] : Null;
+			add_settings_field($id, $label, array($this, 'input_'.$field), $page, $section, $options);
 		}
 
 		register_setting($page, self::$_domain.'_options', array($this, 'validate'));
